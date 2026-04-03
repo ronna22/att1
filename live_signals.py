@@ -100,6 +100,10 @@ COL_W           = 22   # display column width per config
 JSON_STATE_PATH  = Path("live_state.json")
 HTTP_PORT        = 8080
 
+# ── Telegram notifikācijas ────────────────────────────────────────────────────
+TG_TOKEN   = "8625954250:AAHhNQQutuphnVacn3H3ETMQe9FzjKs02To"
+TG_CHAT_ID = "7696701563"
+
 # ── LSTM live configs (6 varianti = 3 horizons × 2 exit veidi) ──────────────
 # exit_mode: "horizon" — iziet pēc horizon svecēm
 #            "tpsl"    — iziet pie TP(+0.5%) / SL(-0.3%), fallback → horizon
@@ -116,6 +120,27 @@ LSTM_LIVE_CONFIGS: list[dict] = [
 LSTM_TAKE_PROFIT =  0.0050   # +0.50%
 LSTM_STOP_LOSS   = -0.0030   # -0.30%
 LSTM_MODELS_DIR  = LSTM_DIR / "saved_models"
+
+
+# ---------------------------------------------------------------------------
+# Telegram notifikācija
+# ---------------------------------------------------------------------------
+def send_telegram(text: str) -> None:
+    """Nosūta ziņu uz Telegram bez bloķēšanas (daemon thread)."""
+    def _send():
+        try:
+            url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+            payload = json.dumps({"chat_id": TG_CHAT_ID, "text": text,
+                                   "parse_mode": "HTML"}).encode()
+            req = urllib.request.Request(
+                url, data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=8)
+        except Exception as exc:
+            print(f"  [TG error] {exc}")
+    threading.Thread(target=_send, daemon=True).start()
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +339,16 @@ class SimState:
                                          self.last_bar_dt, self.horizon)
                 self.trade_log += (f" OPEN {direction.upper()} "
                                    f"@ {entry_price:.6f}")
+                arrow = "\U0001f7e2" if direction == "long" else "\U0001f534"
+                model_tag = "RULE" if self.rule_based else "XGB"
+                send_telegram(
+                    f"{arrow} <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
+                    f"Direction : <b>{direction.upper()}</b>\n"
+                    f"Entry     : {entry_price:.6f}\n"
+                    f"Horizon   : {self.horizon} bars ({self.timeframe})\n"
+                    f"Model     : {model_tag}\n"
+                    f"Time      : {self.last_bar_dt} UTC"
+                )
 
     def unrealized_now(self, live_price: float) -> float | None:
         if self.position is None:
@@ -505,6 +540,15 @@ class LstmSimState:
             self.position = Position("long", entry_price,
                                      self.last_bar_dt, self.horizon)
             self.trade_log += f" OPEN LONG @ {entry_price:.6f}"
+            send_telegram(
+                f"\U0001f7e2 <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
+                f"Direction : <b>LONG</b>\n"
+                f"Entry     : {entry_price:.6f}\n"
+                f"Horizon   : {self.horizon} bars (5m)\n"
+                f"Model     : LSTM ({self.exit_mode})\n"
+                f"Prob      : {self.p_long:.1%}\n"
+                f"Time      : {self.last_bar_dt} UTC"
+            )
 
     def unrealized_now(self, live_price: float) -> float | None:
         if self.position is None:
