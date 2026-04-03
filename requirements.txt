@@ -1,0 +1,25 @@
+# Core ML
+numpy==2.2.6
+pandas==2.3.3
+scikit-learn==1.7.2
+scipy==1.15.3
+
+# Gradient boosting models
+lightgbm==4.6.0
+xgboost==3.2.0
+
+# LSTM pipeline
+tensorflow==2.21.0
+keras==3.12.1
+h5py==3.14.0
+joblib==1.5.3
+
+# HTTP / API
+requests==2.33.0
+urllib3==2.6.3
+
+# Utils
+python-dateutil==2.9.0.post0
+pytz==2026.1.post1
+tzdata==2025.3
+packaging==26.0
