@@ -63,6 +63,7 @@ def train_horizon(
     df_5m:     pd.DataFrame,
     df_15m:    pd.DataFrame,
     horizon:   int,
+    symbol:    str | None = None,
     verbose:   int = 1,
 ) -> dict:
     """
@@ -70,9 +71,11 @@ def train_horizon(
 
     Returns dict with evaluation metrics.
     """
+    if symbol is None:
+        symbol = SYMBOL
     divider = "=" * 62
     print(f"\n{divider}")
-    print(f"  TRAINING  —  {SYMBOL}  horizon={horizon}  (5m + 15m LSTM)")
+    print(f"  TRAINING  —  {symbol}  horizon={horizon}  (5m + 15m LSTM)")
     print(divider)
 
     # ── Features ─────────────────────────────────────────────────────────────
@@ -115,7 +118,7 @@ def train_horizon(
         print(f"  Model params : {total_params:,}")
 
     # ── Callbacks ─────────────────────────────────────────────────────────────
-    save_path = str(MODELS_DIR / f"lstm_{SYMBOL}_{horizon}bar.keras")
+    save_path = str(MODELS_DIR / f"lstm_{symbol}_{horizon}bar.keras")
     callbacks = make_callbacks(
         save_path         = save_path,
         patience          = EARLY_STOP_PAT,
@@ -164,11 +167,11 @@ def train_horizon(
     ))
 
     # ── Save scaler and metadata ───────────────────────────────────────────────
-    scaler_path = MODELS_DIR / f"scaler_{SYMBOL}_{horizon}bar.pkl"
+    scaler_path = MODELS_DIR / f"scaler_{symbol}_{horizon}bar.pkl"
     joblib.dump(scaler, scaler_path)
 
     result = {
-        "symbol":          SYMBOL,
+        "symbol":          symbol,
         "horizon":         horizon,
         "window":          WINDOW,
         "n_features":      n_feats,
@@ -186,7 +189,7 @@ def train_horizon(
         "test_samples":    len(X_test),
     }
 
-    meta_path = MODELS_DIR / f"meta_{SYMBOL}_{horizon}bar.json"
+    meta_path = MODELS_DIR / f"meta_{symbol}_{horizon}bar.json"
     meta_path.write_text(json.dumps(result, indent=2))
 
     print(f"  Model  saved → {save_path}")

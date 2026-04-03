@@ -1,0 +1,27 @@
+{
+  "symbol": "ONTUSDT",
+  "horizon": 2,
+  "window": 50,
+  "n_features": 38,
+  "n_timesteps": 50,
+  "threshold": 0.5,
+  "epochs_run": 11,
+  "best_val_loss": 0.519908,
+  "accuracy": 0.6205,
+  "precision": 0.3569,
+  "recall": 0.2264,
+  "f1": 0.2771,
+  "confusion_matrix": [
+    [
+      723,
+      173
+    ],
+    [
+      328,
+      96
+    ]
+  ],
+  "train_samples": 6154,
+  "val_samples": 1318,
+  "test_samples": 1320
+}

@@ -25,23 +25,31 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run full LSTM pipeline")
+    parser.add_argument("--symbol",        type=str,   default=None,
+                        help="Symbol to train (default: SIRENUSDT from data_fetch.py)")
+    parser.add_argument("--days",          type=int,   default=None,
+                        help="Override look-back days for both 5m and 15m")
     parser.add_argument("--horizon",        type=int,   default=None)
     parser.add_argument("--threshold",      type=float, default=0.60)
     parser.add_argument("--force-download", action="store_true")
     parser.add_argument("--verbose",        type=int,   default=1)
     args = parser.parse_args()
 
+    from data_fetch import fetch_ohlcv, SYMBOL as DEFAULT_SYMBOL, TF_LOOKBACK_DAYS
+    symbol = args.symbol or DEFAULT_SYMBOL
+    days_5m  = args.days or TF_LOOKBACK_DAYS["5m"]
+    days_15m = args.days or TF_LOOKBACK_DAYS["15m"]
+
     t0 = time.time()
     print("\n" + "=" * 62)
-    print("  LSTM PIPELINE  —  SIRENUSDT  (5m + 15m)")
+    print(f"  LSTM PIPELINE  —  {symbol}  (5m + 15m)")
     print("=" * 62)
 
     # ── Step 1: Download data ─────────────────────────────────────────────────
     print("\n  STEP 1 / 3  —  Data fetch")
-    from data_fetch import fetch_ohlcv, SYMBOL, TF_LOOKBACK_DAYS
-    df_5m  = fetch_ohlcv(SYMBOL, "5m",  days=TF_LOOKBACK_DAYS["5m"],
+    df_5m  = fetch_ohlcv(symbol, "5m",  days=days_5m,
                           force_download=args.force_download)
-    df_15m = fetch_ohlcv(SYMBOL, "15m", days=TF_LOOKBACK_DAYS["15m"],
+    df_15m = fetch_ohlcv(symbol, "15m", days=days_15m,
                           force_download=args.force_download)
 
     # ── Step 2: Train ─────────────────────────────────────────────────────────
@@ -51,7 +59,7 @@ def main() -> None:
     results  = []
     for h in horizons:
         try:
-            r = train_horizon(df_5m, df_15m, h, verbose=args.verbose)
+            r = train_horizon(df_5m, df_15m, h, symbol=symbol, verbose=args.verbose)
             results.append(r)
         except Exception as exc:
             print(f"  [ERROR] training horizon={h}: {exc}")
@@ -61,7 +69,7 @@ def main() -> None:
     from backtest import backtest_horizon
     for h in horizons:
         try:
-            backtest_horizon(df_5m, df_15m, h, entry_thr=args.threshold)
+            backtest_horizon(df_5m, df_15m, h, symbol=symbol, entry_thr=args.threshold)
         except Exception as exc:
             print(f"  [ERROR] backtest horizon={h}: {exc}")
 

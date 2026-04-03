@@ -1,6 +1,6 @@
 {
-  "updated_utc": "2026-04-03 14:15:16",
-  "updated_ts": 1775225716,
+  "updated_utc": "2026-04-03 14:18:48",
+  "updated_ts": 1775225928,
   "symbol": "SIRENUSDT",
   "no_wait": true,
   "configs": [
@@ -15,7 +15,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.17144,
-      "live_price": 0.17057,
+      "live_price": 0.16797,
       "above_ma100": 0,
       "p_long": 0.315,
       "p_short": 0.4579,
@@ -36,7 +36,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 283
+      "next_bar_secs": 71
     },
     {
       "label": "5m-3bar",
@@ -49,7 +49,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.17144,
-      "live_price": 0.17057,
+      "live_price": 0.16797,
       "above_ma100": 0,
       "p_long": 0.4255,
       "p_short": 0.458,
@@ -71,7 +71,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 283
+      "next_bar_secs": 71
     },
     {
       "label": "15m-2bar",
@@ -84,7 +84,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.17144,
-      "live_price": 0.17073,
+      "live_price": 0.16767,
       "above_ma100": 0,
       "p_long": 0.4891,
       "p_short": 0.3846,
@@ -104,7 +104,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 883
+      "next_bar_secs": 671
     },
     {
       "label": "15m-3bar",
@@ -117,7 +117,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.006596,
-      "live_price": 0.006575,
+      "live_price": 0.006655,
       "above_ma100": 0,
       "p_long": 0.3,
       "p_short": 0.3,
@@ -138,7 +138,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 883
+      "next_bar_secs": 671
     },
     {
       "label": "15m-3bar",
@@ -151,7 +151,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.10085,
-      "live_price": 0.10068,
+      "live_price": 0.09984,
       "above_ma100": 0,
       "p_long": 0.3,
       "p_short": 1.0,
@@ -171,7 +171,7 @@
         "entry_time": "2026-04-03 13:45",
         "bars_held": 1,
         "horizon": 3,
-        "unrealized_pct": 0.028
+        "unrealized_pct": 0.86
       },
       "capital": 10000.0,
       "return_pct": 0.0,
@@ -179,7 +179,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 883
+      "next_bar_secs": 671
     },
     {
       "label": "15m-2bar",
@@ -192,7 +192,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.10085,
-      "live_price": 0.10068,
+      "live_price": 0.09984,
       "above_ma100": 0,
       "p_long": 0.1558,
       "p_short": 0.4553,
@@ -212,7 +212,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 883
+      "next_bar_secs": 671
     },
     {
       "label": "15m-1bar",
@@ -225,7 +225,7 @@
       "exit_mode": "horizon",
       "status": "ok",
       "last_close": 0.11142,
-      "live_price": 0.11087,
+      "live_price": 0.11139,
       "above_ma100": 0,
       "p_long": 0.8373,
       "p_short": 0.332,
@@ -245,7 +245,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 883
+      "next_bar_secs": 671
     }
   ]
 }

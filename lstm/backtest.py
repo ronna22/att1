@@ -211,14 +211,18 @@ def backtest_horizon(
     df_5m:       pd.DataFrame,
     df_15m:      pd.DataFrame,
     horizon:     int,
+    symbol:      str | None = None,
     entry_thr:   float = 0.60,
 ) -> None:
     """Load saved model, predict on test set, run simulation."""
     import tensorflow as tf  # deferred import (slow)
 
-    model_path  = MODELS_DIR / f"lstm_{SYMBOL}_{horizon}bar.keras"
-    scaler_path = MODELS_DIR / f"scaler_{SYMBOL}_{horizon}bar.pkl"
-    meta_path   = MODELS_DIR / f"meta_{SYMBOL}_{horizon}bar.json"
+    if symbol is None:
+        symbol = SYMBOL
+
+    model_path  = MODELS_DIR / f"lstm_{symbol}_{horizon}bar.keras"
+    scaler_path = MODELS_DIR / f"scaler_{symbol}_{horizon}bar.pkl"
+    meta_path   = MODELS_DIR / f"meta_{symbol}_{horizon}bar.json"
 
     for p in [model_path, scaler_path, meta_path]:
         if not p.exists():
@@ -229,7 +233,7 @@ def backtest_horizon(
     scaler = joblib.load(scaler_path)
 
     print(f"\n{'='*62}")
-    print(f"  BACKTEST  —  {SYMBOL}  horizon={horizon}  threshold={entry_thr:.0%}")
+    print(f"  BACKTEST  —  {symbol}  horizon={horizon}  threshold={entry_thr:.0%}")
     print("="*62)
 
     # ── Rebuild test sequences with original indices ──────────────────────────

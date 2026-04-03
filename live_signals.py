@@ -126,7 +126,7 @@ LSTM_MODELS_DIR  = LSTM_DIR / "saved_models"
 # Telegram notifikācija
 # ---------------------------------------------------------------------------
 def send_telegram(text: str) -> None:
-    """Nosūta ziņu uz Telegram bez bloķēšanas (daemon thread)."""
+    """Nosūta ziņu uz Telegram bez bloķēšanas (non-daemon thread)."""
     def _send():
         try:
             url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
@@ -137,10 +137,11 @@ def send_telegram(text: str) -> None:
                 headers={"Content-Type": "application/json"},
                 method="POST",
             )
-            urllib.request.urlopen(req, timeout=8)
+            urllib.request.urlopen(req, timeout=10)
+            print(f"  [TG ok] {text[:50]}", flush=True)
         except Exception as exc:
-            print(f"  [TG error] {exc}")
-    threading.Thread(target=_send, daemon=True).start()
+            print(f"  [TG error] {exc}", flush=True)
+    threading.Thread(target=_send, daemon=False).start()
 
 
 # ---------------------------------------------------------------------------
@@ -330,6 +331,14 @@ class SimState:
                     })
                     self.trade_log = (f"CLOSED {self.position.direction.upper()} "
                                       f"{pnl_pct:+.2f}%  cap:{self.capital:.0f}")
+                    flag_icon = "✅" if flag == "W" else "❌"
+                    send_telegram(
+                        f"{flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
+                        f"Direction : {self.position.direction.upper()}\n"
+                        f"PnL       : <b>{pnl_pct:+.2f}%</b>\n"
+                        f"Capital   : {self.capital:.0f} USDT\n"
+                        f"Time      : {self.last_bar_dt} UTC"
+                    )
                     self.position = None
 
             if self.position is None and (self.go_long or self.go_short):
@@ -538,6 +547,16 @@ class LstmSimState:
                 self.trade_log = (
                     f"CLOSED {pos.direction.upper()} {exit_tag}"
                     f"{pnl_pct:+.2f}%  cap:{self.capital:.0f}"
+                )
+                flag_icon = "✅" if flag == "W" else "❌"
+                exit_type_label = {"tp": "TP +0.50%", "sl": "SL -0.30%", "hrz": "Horizon"}.get(self._pending_exit or "hrz", "Horizon")
+                send_telegram(
+                    f"{flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
+                    f"Direction : {pos.direction.upper()}\n"
+                    f"PnL       : <b>{pnl_pct:+.2f}%</b>\n"
+                    f"Exit      : {exit_type_label}\n"
+                    f"Capital   : {self.capital:.0f} USDT\n"
+                    f"Time      : {self.last_bar_dt} UTC"
                 )
                 self.position = None
                 self._pending_exit = None
