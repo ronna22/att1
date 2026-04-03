@@ -1,6 +1,6 @@
 {
-  "updated_utc": "2026-04-03 14:07:52",
-  "updated_ts": 1775225272,
+  "updated_utc": "2026-04-03 14:15:16",
+  "updated_ts": 1775225716,
   "symbol": "SIRENUSDT",
   "no_wait": true,
   "configs": [
@@ -14,20 +14,20 @@
       "model_type": "xgb",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.16957,
-      "live_price": 0.1698,
+      "last_close": 0.17144,
+      "live_price": 0.17057,
       "above_ma100": 0,
-      "p_long": 0.5912,
-      "p_short": 0.4151,
+      "p_long": 0.315,
+      "p_short": 0.4579,
       "go_long": false,
       "go_short": false,
       "filters": {
         "atr7_pct": 4.14,
         "slope_abs_pct": 1.16
       },
-      "filt_atr": 1.065,
-      "filt_roc": 2.406,
-      "filt_slope": 0.467,
+      "filt_atr": 1.203,
+      "filt_roc": 1.267,
+      "filt_slope": 0.625,
       "filt_pass": false,
       "position": null,
       "capital": 10000.0,
@@ -36,7 +36,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 127
+      "next_bar_secs": 283
     },
     {
       "label": "5m-3bar",
@@ -48,11 +48,11 @@
       "model_type": "xgb",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.16957,
-      "live_price": 0.1698,
+      "last_close": 0.17144,
+      "live_price": 0.17057,
       "above_ma100": 0,
-      "p_long": 0.5815,
-      "p_short": 0.3857,
+      "p_long": 0.4255,
+      "p_short": 0.458,
       "go_long": false,
       "go_short": false,
       "filters": {
@@ -60,9 +60,9 @@
         "roc10_abs_pct": 2.49,
         "slope_abs_pct": 1.26
       },
-      "filt_atr": 1.065,
-      "filt_roc": 2.406,
-      "filt_slope": 0.467,
+      "filt_atr": 1.203,
+      "filt_roc": 1.267,
+      "filt_slope": 0.625,
       "filt_pass": false,
       "position": null,
       "capital": 10000.0,
@@ -71,7 +71,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 127
+      "next_bar_secs": 283
     },
     {
       "label": "15m-2bar",
@@ -83,19 +83,19 @@
       "model_type": "xgb",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.17126,
-      "live_price": 0.1698,
+      "last_close": 0.17144,
+      "live_price": 0.17073,
       "above_ma100": 0,
-      "p_long": 0.4708,
-      "p_short": 0.4443,
+      "p_long": 0.4891,
+      "p_short": 0.3846,
       "go_long": false,
       "go_short": false,
       "filters": {
         "roc10_abs_pct": 6.81
       },
-      "filt_atr": 2.419,
-      "filt_roc": 1.24,
-      "filt_slope": 0.32,
+      "filt_atr": 2.302,
+      "filt_roc": 0.574,
+      "filt_slope": 0.384,
       "filt_pass": false,
       "position": null,
       "capital": 10000.0,
@@ -104,7 +104,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 427
+      "next_bar_secs": 883
     },
     {
       "label": "15m-3bar",
@@ -116,8 +116,8 @@
       "model_type": "rule",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.006654,
-      "live_price": 0.006563,
+      "last_close": 0.006596,
+      "live_price": 0.006575,
       "above_ma100": 0,
       "p_long": 0.3,
       "p_short": 0.3,
@@ -127,9 +127,9 @@
         "atr7_pct": 0.99,
         "slope_abs_pct": 0.78
       },
-      "filt_atr": 4.772,
-      "filt_roc": 2.59,
-      "filt_slope": 0.887,
+      "filt_atr": 4.494,
+      "filt_roc": 0.38,
+      "filt_slope": 0.804,
       "filt_pass": true,
       "position": null,
       "capital": 10000.0,
@@ -138,7 +138,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 427
+      "next_bar_secs": 883
     },
     {
       "label": "15m-3bar",
@@ -150,28 +150,28 @@
       "model_type": "rule",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.10091,
-      "live_price": 0.1,
+      "last_close": 0.10085,
+      "live_price": 0.10068,
       "above_ma100": 0,
-      "p_long": 0.2829,
-      "p_short": 0.9429,
+      "p_long": 0.3,
+      "p_short": 1.0,
       "go_long": false,
       "go_short": true,
       "filters": {
         "atr7_pct": 1.65,
         "slope_abs_pct": 1.11
       },
-      "filt_atr": 3.111,
-      "filt_roc": 8.255,
-      "filt_slope": 2.153,
+      "filt_atr": 3.423,
+      "filt_roc": 10.602,
+      "filt_slope": 2.743,
       "filt_pass": true,
       "position": {
         "direction": "short",
         "entry_price": 0.10091,
         "entry_time": "2026-04-03 13:45",
-        "bars_held": 0,
+        "bars_held": 1,
         "horizon": 3,
-        "unrealized_pct": 0.702
+        "unrealized_pct": 0.028
       },
       "capital": 10000.0,
       "return_pct": 0.0,
@@ -179,7 +179,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 427
+      "next_bar_secs": 883
     },
     {
       "label": "15m-2bar",
@@ -191,19 +191,19 @@
       "model_type": "xgb",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.10091,
-      "live_price": 0.1,
+      "last_close": 0.10085,
+      "live_price": 0.10068,
       "above_ma100": 0,
-      "p_long": 0.502,
-      "p_short": 0.478,
+      "p_long": 0.1558,
+      "p_short": 0.4553,
       "go_long": false,
       "go_short": false,
       "filters": {
         "atr7_pct": 0.79
       },
-      "filt_atr": 3.111,
-      "filt_roc": 8.255,
-      "filt_slope": 2.153,
+      "filt_atr": 3.423,
+      "filt_roc": 10.602,
+      "filt_slope": 2.743,
       "filt_pass": true,
       "position": null,
       "capital": 10000.0,
@@ -212,7 +212,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 427
+      "next_bar_secs": 883
     },
     {
       "label": "15m-1bar",
@@ -224,19 +224,19 @@
       "model_type": "xgb",
       "exit_mode": "horizon",
       "status": "ok",
-      "last_close": 0.11321,
-      "live_price": 0.11312,
+      "last_close": 0.11142,
+      "live_price": 0.11087,
       "above_ma100": 0,
-      "p_long": 0.8119,
-      "p_short": 0.3276,
+      "p_long": 0.8373,
+      "p_short": 0.332,
       "go_long": false,
       "go_short": false,
       "filters": {
         "roc10_abs_pct": 2.0
       },
-      "filt_atr": 6.51,
-      "filt_roc": 12.942,
-      "filt_slope": 2.246,
+      "filt_atr": 6.722,
+      "filt_roc": 9.708,
+      "filt_slope": 3.183,
       "filt_pass": true,
       "position": null,
       "capital": 10000.0,
@@ -245,7 +245,7 @@
       "trades_wins": 0,
       "win_rate": 0.0,
       "recent_trades": [],
-      "next_bar_secs": 427
+      "next_bar_secs": 883
     }
   ]
 }

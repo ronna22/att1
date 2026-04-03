@@ -339,10 +339,17 @@ class SimState:
                                          self.last_bar_dt, self.horizon)
                 self.trade_log += (f" OPEN {direction.upper()} "
                                    f"@ {entry_price:.6f}")
-                arrow = "\U0001f7e2" if direction == "long" else "\U0001f534"
-                model_tag = "RULE" if self.rule_based else "XGB"
+                if self.rule_based:
+                    icon = "\U0001f4d0" if direction == "long" else "\U0001f4d5"  # 📐/📕 rule
+                    model_tag = "RULE-BASED"
+                elif self.symbol == "SIRENUSDT":
+                    icon = "\u2b50\U0001f7e2" if direction == "long" else "\u2b50\U0001f534"  # ⭐🟢/⭐🔴 SIREN ML
+                    model_tag = "XGB ★ SIRENUSDT"
+                else:
+                    icon = "\U0001f535" if direction == "long" else "\U0001f7e0"  # 🔵/🟠 other ML
+                    model_tag = f"XGB  {self.symbol}"
                 send_telegram(
-                    f"{arrow} <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
+                    f"{icon} <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
                     f"Direction : <b>{direction.upper()}</b>\n"
                     f"Entry     : {entry_price:.6f}\n"
                     f"Horizon   : {self.horizon} bars ({self.timeframe})\n"
@@ -540,12 +547,13 @@ class LstmSimState:
             self.position = Position("long", entry_price,
                                      self.last_bar_dt, self.horizon)
             self.trade_log += f" OPEN LONG @ {entry_price:.6f}"
+            exit_label = "Horizon exit" if self.exit_mode == "horizon" else "TP+0.50% / SL-0.30%"
             send_telegram(
-                f"\U0001f7e2 <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
+                f"\U0001f9e0\U0001f7e2 <b>LSTM SIGNAL [{self.symbol} {self.label}]</b>\n"
                 f"Direction : <b>LONG</b>\n"
                 f"Entry     : {entry_price:.6f}\n"
                 f"Horizon   : {self.horizon} bars (5m)\n"
-                f"Model     : LSTM ({self.exit_mode})\n"
+                f"Exit      : {exit_label}\n"
                 f"Prob      : {self.p_long:.1%}\n"
                 f"Time      : {self.last_bar_dt} UTC"
             )
