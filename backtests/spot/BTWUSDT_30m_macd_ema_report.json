@@ -1,0 +1,38 @@
+{
+  "strategy": "macd_ema",
+  "timeframe": "30m",
+  "indicators": {
+    "macd_fast": 6,
+    "macd_slow": 16,
+    "macd_signal": 9,
+    "ema_fast": 20,
+    "ema_mid": 50,
+    "ema_slow": 200
+  },
+  "rules": {
+    "bullish_regime": "EMA20 > EMA50 > EMA200",
+    "bearish_regime": "EMA20 < EMA50 < EMA200",
+    "long_entry": "bullish regime (EMA20>EMA50>EMA200) AND price bounces up off EMA20 or EMA50 AND MACD histogram rising",
+    "short_entry": "bearish regime (EMA20<EMA50<EMA200) AND price bounces down off EMA20 or EMA50 AND MACD histogram falling",
+    "long_exit": "TP: +10.00% | SL: -10.00% (intrabar, SL wins on tie)",
+    "short_exit": "TP: -10.00% | SL: +10.00% (intrabar, SL wins on tie)",
+    "entry_execution": "next bar open after signal",
+    "exit_execution": "intrabar at exact TP/SL price",
+    "exit_pct": 0.1,
+    "stop_loss_pct": 0.1
+  },
+  "backtest": {
+    "initial_capital": 10000.0,
+    "final_equity": 12723.5383,
+    "total_return_pct": 27.2354,
+    "closed_trades": 20,
+    "winning_trades": 12,
+    "losing_trades": 8,
+    "win_rate_pct": 60.0,
+    "avg_win": 1117.2612,
+    "avg_loss": -1305.5084,
+    "profit_factor": 1.2837,
+    "max_drawdown_pct": 30.1503,
+    "fee_rate": 0.001
+  }
+}

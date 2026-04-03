@@ -1,0 +1,35 @@
+{
+  "_comment": "ML model configuration — edit here, no code changes needed",
+
+  "target_pct":    0.005,
+  "fee_rate":      0.001,
+  "stop_loss_pct": null,
+
+  "min_probs":  [0.52, 0.55, 0.58, 0.60, 0.62, 0.65],
+  "hold_bars":  [1, 2, 3],
+
+  "tf_lookback_days": {
+    "1m":  30,
+    "3m":  30,
+    "5m":  45,
+    "15m": 90,
+    "30m": 90
+  },
+
+  "train_cutoff_default": "2026-03-20",
+
+  "_comment_filters": "Signal quality filters per symbol. Keys inside each config: atr7_pct, roc10_abs_pct, slope_abs_pct (all in % units)",
+  "signal_filters": {
+    "SIRENUSDT": {
+      "5m-2bar":  { "atr7_pct": 4.14, "slope_abs_pct": 1.16 },
+      "5m-3bar":  { "atr7_pct": 3.80, "roc10_abs_pct": 2.49, "slope_abs_pct": 1.26 },
+      "15m-2bar": { "roc10_abs_pct": 6.81 }
+    },
+    "ONTUSDT": {
+      "15m-2bar": { "atr7_pct": 0.79 }
+    },
+    "STOUSDT": {
+      "15m-1bar": { "roc10_abs_pct": 2.00 }
+    }
+  }
+}

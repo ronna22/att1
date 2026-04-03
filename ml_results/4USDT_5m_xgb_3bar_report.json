@@ -1,0 +1,9 @@
+{
+  "model": "XGBoost",
+  "timeframe": "5m",
+  "hold_bars": 3,
+  "trades": 0,
+  "error": "No trades at any threshold",
+  "auc_long": 0.5304,
+  "auc_short": 0.5293
+}

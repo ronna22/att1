@@ -1,0 +1,1 @@
+C:\Users\uldis\AppData\Local\Programs\Python\Python310\python.exe: can't open file 'C:\\Uldis\\bitget\\jkd\\analyze_bt.py': [Errno 2] No such file or directory

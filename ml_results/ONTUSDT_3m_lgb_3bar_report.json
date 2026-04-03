@@ -1,0 +1,9 @@
+{
+  "model": "LightGBM",
+  "timeframe": "3m",
+  "hold_bars": 3,
+  "trades": 0,
+  "error": "No trades at any threshold",
+  "auc_long": 0.5875,
+  "auc_short": 0.5489
+}

@@ -1,0 +1,18 @@
+{
+  "model": "XGBoost",
+  "timeframe": "3m",
+  "trades": 306,
+  "win_rate_pct": 50.65,
+  "total_return_pct": 169.2778,
+  "max_drawdown_pct": 22.3905,
+  "profit_factor": 1.3008,
+  "avg_win_pct": 2.5621,
+  "avg_loss_pct": -1.8431,
+  "final_capital": 26927.78,
+  "auc_long": 0.5795,
+  "auc_short": 0.5539,
+  "n_features": 86,
+  "target_pct": 0.005,
+  "hold_bars": 2,
+  "mode": "live"
+}

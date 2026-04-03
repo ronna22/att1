@@ -1,0 +1,272 @@
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+C:\Uldis\bitget\jkd\.venv\lib\site-packages\sklearn\utils\validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+
+=================================================================
+  ML MODEL v2: NOMUSDT  |  TFs: ['5m', '15m']  |  Mode: TRAIN
+  Target     : cumulative move >= 0.5%  |  Horizons: [1, 2, 3] bars
+  Filter     : Long if close > MA100  |  Short if close < MA100
+  Thresholds : ['52%', '55%', '58%', '60%', '62%', '65%']  (best reported per horizon)
+  Stop-loss  : no SL  |  Fee: 0.10% per side
+  Train cutoff: <= 2026-03-20  |  Backtest period: after cutoff
+=================================================================
+
+=================================================================
+  NOMUSDT  5m  --  LightGBM + XGBoost  (v2)
+=================================================================
+  Downloading NOMUSDT 5m (45d)...
+  -> 8929 candles  (2026-02-25 20:25:00+00:00 -> 2026-03-28 20:25:00+00:00)
+  Saved -> data\futures\NOMUSDT_5m.csv
+  Cutoff   : <= 2026-03-20  (8929 -> 6667 candles kept)
+  Candles  : 6667  (2026-02-25 20:25:00+00:00 -> 2026-03-20 23:55:00+00:00)
+
+  ---------------------------------------------------------------
+  Horizon : 1 bar  (enter bar[i+1] open -> exit bar[i+1] close)
+  ---------------------------------------------------------------
+  Samples  : 5260
+  >=+0.5% (long label=1) : 5.3%  of bars
+  >=-0.5% (short label=1): 5.6%  of bars
+  Train: 3681  Val: 790  Test: 789
+  Training LONG  models (pos: 6.3%)...
+  Training SHORT models (pos: 6.4%)...
+  Models saved -> ml_models/NOMUSDT_5m_1bar_*.{txt,json}
+
+  [LightGBM]
+  AUC-ROC  long: 0.5239  |  short: 0.4855
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    ma50_dist                 2
+    macd_hist                 2
+    dist_high_20              2
+    hour                      2
+    atr14                     2
+  Report -> ml_results\NOMUSDT_5m_lgb_1bar_report.json
+
+  [XGBoost]
+  AUC-ROC  long: 0.5916  |  short: 0.5171
+  Best threshold : 55%
+  Trades         : 3
+  Win Rate       : 0.00%
+  Total Return   : -2.3713%
+  Max Drawdown   : 2.3713%
+  Profit Factor  : 0.0
+  Top-5 features:
+    atr14                     0
+    vol_expand                0
+    volatility_10             0
+    volatility_20             0
+    atr7                      0
+  Report -> ml_results\NOMUSDT_5m_xgb_1bar_report.json
+
+  ---------------------------------------------------------------
+  Horizon : 2 bars  (enter bar[i+1] open -> exit bar[i+2] close)
+  ---------------------------------------------------------------
+  Samples  : 5259
+  >=+0.5% (long label=1) : 9.6%  of bars
+  >=-0.5% (short label=1): 10.7%  of bars
+  Train: 3681  Val: 789  Test: 789
+  Training LONG  models (pos: 11.4%)...
+  Training SHORT models (pos: 12.0%)...
+  Models saved -> ml_models/NOMUSDT_5m_2bar_*.{txt,json}
+
+  [LightGBM]
+  AUC-ROC  long: 0.4978  |  short: 0.5570
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    volatility_10             2
+    bb_pct                    2
+    ma5_slope                 1
+    ema5_dist                 1
+    return_3                  1
+  Report -> ml_results\NOMUSDT_5m_lgb_2bar_report.json
+
+  [XGBoost]
+  AUC-ROC  long: 0.5292  |  short: 0.5698
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    macd_cross_up             0
+    volatility_10             0
+    atr14                     0
+    hour                      0
+    williams_r                0
+  Report -> ml_results\NOMUSDT_5m_xgb_2bar_report.json
+
+  ---------------------------------------------------------------
+  Horizon : 3 bars  (enter bar[i+1] open -> exit bar[i+3] close)
+  ---------------------------------------------------------------
+  Samples  : 5258
+  >=+0.5% (long label=1) : 12.9%  of bars
+  >=-0.5% (short label=1): 14.6%  of bars
+  Train: 3680  Val: 789  Test: 789
+  Training LONG  models (pos: 15.3%)...
+  Training SHORT models (pos: 16.2%)...
+  Models saved -> ml_models/NOMUSDT_5m_3bar_*.{txt,json}
+
+  [LightGBM]
+  AUC-ROC  long: 0.5604  |  short: 0.5261
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    minute                    2
+    day_of_week               2
+    atr14                     2
+    bb_width                  2
+    macd_hist                 2
+  Report -> ml_results\NOMUSDT_5m_lgb_3bar_report.json
+
+  [XGBoost]
+  AUC-ROC  long: 0.5532  |  short: 0.5283
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    volatility_10             0
+    roc10                     0
+    atr7                      0
+    hour                      0
+    dist_low_20               0
+  Report -> ml_results\NOMUSDT_5m_xgb_3bar_report.json
+
+=================================================================
+  NOMUSDT  15m  --  LightGBM + XGBoost  (v2)
+=================================================================
+  Downloading NOMUSDT 15m (90d)...
+  -> 2976 candles  (2026-02-25 20:30:00+00:00 -> 2026-03-28 20:15:00+00:00)
+  Saved -> data\futures\NOMUSDT_15m.csv
+  Cutoff   : <= 2026-03-20  (2976 -> 2222 candles kept)
+  Candles  : 2222  (2026-02-25 20:30:00+00:00 -> 2026-03-20 23:45:00+00:00)
+
+  ---------------------------------------------------------------
+  Horizon : 1 bar  (enter bar[i+1] open -> exit bar[i+1] close)
+  ---------------------------------------------------------------
+  Samples  : 2047
+  >=+0.5% (long label=1) : 11.2%  of bars
+  >=-0.5% (short label=1): 13.4%  of bars
+  Train: 1432  Val: 307  Test: 308
+  Training LONG  models (pos: 13.5%)...
+  Training SHORT models (pos: 14.7%)...
+  Models saved -> ml_models/NOMUSDT_15m_1bar_*.{txt,json}
+
+  [LightGBM]
+  AUC-ROC  long: 0.5198  |  short: 0.4889
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    atr7                      2
+    return_2                  1
+    return_5                  1
+    lower_wick                1
+    close_pos                 1
+  Report -> ml_results\NOMUSDT_15m_lgb_1bar_report.json
+
+  [XGBoost]
+  AUC-ROC  long: 0.5319  |  short: 0.5221
+  Best threshold : 65%
+  Trades         : 3
+  Win Rate       : 0.00%
+  Total Return   : -1.7184%
+  Max Drawdown   : 1.7184%
+  Profit Factor  : 0.0
+  Top-5 features:
+    mom_5                     0
+    consec_down               0
+    ema10_dist                0
+    atr14                     0
+    bb_lower_dist             0
+  Report -> ml_results\NOMUSDT_15m_xgb_1bar_report.json
+
+  ---------------------------------------------------------------
+  Horizon : 2 bars  (enter bar[i+1] open -> exit bar[i+2] close)
+  ---------------------------------------------------------------
+  Samples  : 2046
+  >=+0.5% (long label=1) : 17.8%  of bars
+  >=-0.5% (short label=1): 22.2%  of bars
+  Train: 1432  Val: 307  Test: 307
+  Training LONG  models (pos: 20.5%)...
+  Training SHORT models (pos: 23.5%)...
+  Models saved -> ml_models/NOMUSDT_15m_2bar_*.{txt,json}
+
+  [LightGBM]
+  AUC-ROC  long: 0.5047  |  short: 0.5379
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    atr7                      2
+    ma50_slope                2
+    volatility_10             2
+    rsi14                     1
+    ma10_slope                1
+  Report -> ml_results\NOMUSDT_15m_lgb_2bar_report.json
+
+  [XGBoost]
+  AUC-ROC  long: 0.6113  |  short: 0.5712
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    atr7                      0
+    hour                      0
+    roc5                      0
+    volatility_10             0
+    atr14                     0
+  Report -> ml_results\NOMUSDT_15m_xgb_2bar_report.json
+
+  ---------------------------------------------------------------
+  Horizon : 3 bars  (enter bar[i+1] open -> exit bar[i+3] close)
+  ---------------------------------------------------------------
+  Samples  : 2045
+  >=+0.5% (long label=1) : 20.6%  of bars
+  >=-0.5% (short label=1): 26.2%  of bars
+  Train: 1431  Val: 307  Test: 307
+  Training LONG  models (pos: 23.3%)...
+  Training SHORT models (pos: 27.1%)...
+  Models saved -> ml_models/NOMUSDT_15m_3bar_*.{txt,json}
+
+  [LightGBM]
+  AUC-ROC  long: 0.5359  |  short: 0.5154
+  No trades at any threshold (['52%', '55%', '58%', '60%', '62%', '65%'])
+  Top-5 features:
+    ma100_slope               3
+    dist_high_20              2
+    lower_wick                1
+    ma5_slope                 1
+    return_5                  1
+  Report -> ml_results\NOMUSDT_15m_lgb_3bar_report.json
+
+  [XGBoost]
+  AUC-ROC  long: 0.6164  |  short: 0.6241
+  Best threshold : 58%
+  Trades         : 10
+  Win Rate       : 50.00%
+  Total Return   : +1.8248%
+  Max Drawdown   : 2.0278%
+  Profit Factor  : 1.76
+  Top-5 features:
+    dist_high_20              0
+    atr14                     0
+    macd_line                 0
+    roc5                      0
+    macd_signal               0
+  Report -> ml_results\NOMUSDT_15m_xgb_3bar_report.json
+
+================================================================================================================
+  TF    Bars Model    Mode    MinP Trades   Win%    Return   MaxDD     PF   AUC-L   AUC-S
+  ----- ---- -------- ------ ----- ------ ------ --------- ------- ------ ------- -------
+  + 15m      3  XGB      train  0%     10  50.0%   +1.8248%   2.03%   1.76  0.6164  0.6241
+  - 15m      1  XGB      train  0%      3   0.0%   -1.7184%   1.72%   0.00  0.5319  0.5221
+  - 5m       1  XGB      train  0%      3   0.0%   -2.3713%   2.37%   0.00  0.5916  0.5171
+================================================================================================================

@@ -1,0 +1,2 @@
+direction,entry_time,exit_time,entry_price,exit_price,prob,sl_hit,pnl,pnl_pct,capital
+long,2026-03-20 03:45:00+00:00,2026-03-20 03:45:00+00:00,0.04311,0.04299,0.5596,False,-47.8358,-0.4784,9952.16

@@ -1,0 +1,18 @@
+{
+  "model": "LightGBM",
+  "timeframe": "1m",
+  "trades": 875,
+  "win_rate_pct": 27.31,
+  "total_return_pct": -80.3654,
+  "max_drawdown_pct": 80.4858,
+  "profit_factor": 0.3583,
+  "avg_win_pct": 0.3482,
+  "avg_loss_pct": -0.3851,
+  "final_capital": 1963.46,
+  "auc_long": 0.6524,
+  "auc_short": 0.6914,
+  "n_features": 86,
+  "target_pct": 0.005,
+  "hold_bars": 2,
+  "mode": "live"
+}

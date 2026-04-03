@@ -1,0 +1,27 @@
+{
+  "symbol": "SIRENUSDT",
+  "horizon": 2,
+  "window": 50,
+  "n_features": 38,
+  "n_timesteps": 50,
+  "threshold": 0.5,
+  "epochs_run": 11,
+  "best_val_loss": 0.724919,
+  "accuracy": 0.5023,
+  "precision": 0.3906,
+  "recall": 0.6786,
+  "f1": 0.4958,
+  "confusion_matrix": [
+    [
+      340,
+      504
+    ],
+    [
+      153,
+      323
+    ]
+  ],
+  "train_samples": 6155,
+  "val_samples": 1318,
+  "test_samples": 1320
+}

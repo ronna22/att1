@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Signals Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #0d1117;
+  --surface:    #161b22;
+  --surface2:   #21262d;
+  --border:     #30363d;
+  --text:       #c9d1d9;
+  --dim:        #8b949e;
+  --green:      #3fb950;
+  --green-dim:  #0d2818;
+  --green-mid:  #1a5c2a;
+  --red:        #f85149;
+  --red-dim:    #2d0c0c;
+  --red-mid:    #5c1a1a;
+  --yellow:     #d29922;
+  --yellow-dim: #2d2208;
+  --blue:       #58a6ff;
+  --purple:     #bc8cff;
+  --purple-dim: #1a1228;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Sticky header ─────────────────────────────────────────────── */
+#header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  gap: 12px;
+}
+
+.hdr-left  { display: flex; align-items: center; gap: 10px; }
+.hdr-right { display: flex; align-items: center; gap: 12px; }
+
+.hdr-left h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.3px; }
+
+#symbols-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+  color: var(--dim);
+  font-family: monospace;
+}
+
+#updated-time {
+  font-size: 0.75rem;
+  color: var(--dim);
+  font-family: monospace;
+}
+
+#stale-badge {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: none;
+}
+#stale-badge.show { display: block; }
+
+#refresh-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 5px var(--green);
+  animation: pulse 2s infinite;
+}
+#refresh-dot.stale { background: var(--red); box-shadow: 0 0 5px var(--red); animation: none; }
+#refresh-dot.fetching { background: var(--yellow); box-shadow: 0 0 5px var(--yellow); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+#refresh-timer {
+  font-size: 0.72rem;
+  color: var(--dim);
+  font-family: monospace;
+  min-width: 20px;
+}
+
+/* ── Cards grid ───────────────────────────────────────────────── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(305px, 1fr));
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+/* ── Card ─────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.card.sig-long  { border-color: var(--green); box-shadow: 0 0 10px rgba(63,185,80,.15); }
+.card.sig-short { border-color: var(--red);   box-shadow: 0 0 10px rgba(248,81,73,.15); }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 13px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 0.88rem; font-weight: 600; }
+.card-title .sym { color: var(--blue); }
+.card-title .lbl { color: var(--dim); margin-left: 5px; }
+
+.type-badge {
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: 1px solid;
+}
+.type-badge.ml   { color: var(--purple); border-color: var(--purple); background: var(--purple-dim); }
+.type-badge.rule { color: var(--yellow); border-color: var(--yellow); background: var(--yellow-dim); }
+
+.card-body {
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ── Signal banner ──────────────────────────────────────────── */
+.signal-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+}
+.signal-banner.long  { background: var(--green-dim); color: var(--green); border-color: var(--green-mid); }
+.signal-banner.short { background: var(--red-dim);   color: var(--red);   border-color: var(--red-mid);   }
+.signal-banner.wait  { background: var(--surface2);  color: var(--yellow); border-color: var(--border); font-size: 0.78rem; font-weight: 400; }
+.signal-banner.none  { background: var(--surface2);  color: var(--dim);   border-color: var(--border); font-size: 0.78rem; font-weight: 400; }
+
+.sig-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.sig-dot.g { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.sig-dot.r { background: var(--red);   box-shadow: 0 0 6px var(--red);   }
+
+/* ── Price row ──────────────────────────────────────────────── */
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.price-item { text-align: center; }
+.price-lbl  { font-size: 0.62rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.4px; }
+.price-val  { font-size: 0.83rem; font-family: monospace; }
+
+.trend-badge {
+  font-size: 0.72rem;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.trend-badge.above { background: var(--green-dim); color: var(--green); }
+.trend-badge.below { background: var(--red-dim);   color: var(--red);   }
+
+/* ── Prob bars ──────────────────────────────────────────────── */
+.prob-section { display: flex; flex-direction: column; gap: 4px; }
+
+.prob-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.prob-lbl { font-size: 0.68rem; color: var(--dim); width: 30px; text-align: right; flex-shrink: 0; }
+.prob-track {
+  flex: 1;
+  height: 7px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.prob-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  min-width: 0;
+}
+.prob-fill.long-fill  { background: linear-gradient(90deg, #1a5c2a, var(--green)); }
+.prob-fill.short-fill { background: linear-gradient(90deg, #5c1a1a, var(--red));   }
+.prob-val { font-size: 0.72rem; font-family: monospace; width: 36px; flex-shrink: 0; }
+.prob-val.al { color: var(--green); font-weight: 700; }
+.prob-val.as { color: var(--red);   font-weight: 700; }
+.prob-thr { font-size: 0.62rem; color: var(--dim); width: 26px; flex-shrink: 0; text-align: right; }
+
+/* ── Filters ────────────────────────────────────────────────── */
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.filt-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  border: 1px solid;
+}
+.filt-badge.pass { color: var(--green); border-color: var(--green-mid); background: var(--green-dim); }
+.filt-badge.fail { color: var(--red);   border-color: var(--red-mid);   background: var(--red-dim);   }
+
+.overall-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  border: 1px solid;
+}
+.overall-badge.ok  { color: var(--green); border-color: var(--green); background: var(--green-dim); }
+.overall-badge.nok { color: var(--red);   border-color: var(--red);   background: var(--red-dim);   }
+
+/* ── Position box ───────────────────────────────────────────── */
+.pos-box {
+  border-radius: 6px;
+  padding: 7px 10px;
+  border: 1px solid;
+}
+.pos-box.long-pos  { background: var(--green-dim); border-color: var(--green-mid); }
+.pos-box.short-pos { background: var(--red-dim);   border-color: var(--red-mid);   }
+.pos-box.no-pos    { background: var(--surface2);  border-color: var(--border);    }
+
+.pos-head { display: flex; justify-content: space-between; align-items: center; }
+.pos-dir  { font-size: 0.8rem; font-weight: 700; }
+.pos-dir.long  { color: var(--green); }
+.pos-dir.short { color: var(--red);   }
+.pos-dir.none  { color: var(--dim); font-weight: 400; font-size: 0.75rem; }
+
+.pos-unr { font-size: 0.88rem; font-family: monospace; font-weight: 700; }
+.pos-unr.pos { color: var(--green); }
+.pos-unr.neg { color: var(--red);   }
+
+.pos-detail { font-size: 0.67rem; color: var(--dim); margin-top: 3px; font-family: monospace; }
+
+/* ── Stats ──────────────────────────────────────────────────── */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+.stat-item  { text-align: center; }
+.stat-lbl   { font-size: 0.6rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.3px; }
+.stat-val   { font-size: 0.83rem; font-family: monospace; }
+.stat-val.pos { color: var(--green); }
+.stat-val.neg { color: var(--red);   }
+
+/* ── Recent trades ──────────────────────────────────────────── */
+.trades-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.trades-lbl  { font-size: 0.62rem; color: var(--dim); }
+.trade-chip {
+  font-size: 0.63rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-weight: 600;
+}
+.trade-chip.w { background: var(--green-dim); color: var(--green); }
+.trade-chip.l { background: var(--red-dim);   color: var(--red);   }
+
+/* ── Timer ──────────────────────────────────────────────────── */
+.timer-row { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+.timer-lbl { font-size: 0.62rem; color: var(--dim); }
+.timer-val { font-size: 0.72rem; font-family: monospace; color: var(--blue); }
+
+/* ── Divider ────────────────────────────────────────────────── */
+hr.div { border: none; border-top: 1px solid var(--border); }
+
+/* ── No-data / error ────────────────────────────────────────── */
+#no-data {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--dim);
+}
+#no-data h2 { font-size: 1.1rem; margin-bottom: 10px; color: var(--text); }
+#no-data p  { font-size: 0.83rem; margin-top: 6px; }
+#no-data code { background: var(--surface2); padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="hdr-left">
+    <h1>⚡ Live Signals</h1>
+    <span id="symbols-badge">—</span>
+  </div>
+  <div class="hdr-right">
+    <span id="stale-badge">⚠ NOVECOJIS</span>
+    <span id="updated-time">—</span>
+    <div id="refresh-dot"></div>
+    <span id="refresh-timer">5s</span>
+  </div>
+</div>
+
+<div id="grid">
+  <div id="no-data">
+    <h2>⏳ Gaida datus…</h2>
+    <p>Palaid: <code>python live_signals.py --no-wait</code></p>
+    <p style="margin-top:8px">Tad atver šo lapu vai: <code>http://localhost:8080/live_dashboard.html</code></p>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const REFRESH_MS = 5000;
+let countdown = REFRESH_MS / 1000;
+
+// ── Price formatter (smart decimals) ─────────────────────────────
+function fmtPrice(v) {
+  if (!v || v === 0) return '—';
+  if (v < 0.0001) return v.toFixed(8);
+  if (v < 0.01)   return v.toFixed(6);
+  if (v < 1)      return v.toFixed(5);
+  if (v < 100)    return v.toFixed(4);
+  return v.toFixed(2);
+}
+
+function fmtPct(v, d) {
+  if (v == null) return '—';
+  d = d ?? 2;
+  return (v >= 0 ? '+' : '') + v.toFixed(d) + '%';
+}
+
+function fmtSecs(s) {
+  if (s == null || s < 0) return '--:--';
+  const m   = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── Render one config card ────────────────────────────────────────
+function renderCard(c) {
+  const sigClass = c.go_long ? 'sig-long' : c.go_short ? 'sig-short' : '';
+
+  // Type badge
+  const typeBadge = c.rule_based
+    ? `<span class="type-badge rule">RULE</span>`
+    : `<span class="type-badge ml">ML ≥${(c.min_prob*100).toFixed(0)}%</span>`;
+
+  // Signal banner
+  let banner;
+  if (c.status === 'wait' || c.status === 'loading') {
+    banner = `<div class="signal-banner wait">⏳ Gaida datus…</div>`;
+  } else if (c.go_long) {
+    banner = `<div class="signal-banner long"><span class="sig-dot g"></span>LONG SIGNAL</div>`;
+  } else if (c.go_short) {
+    banner = `<div class="signal-banner short"><span class="sig-dot r"></span>SHORT SIGNAL</div>`;
+  } else {
+    banner = `<div class="signal-banner none">— gaidām signālu</div>`;
+  }
+
+  // Price row
+  const trendCls = c.above_ma100 ? 'above' : 'below';
+  const trendTxt = c.above_ma100 ? '▲ ABOVE MA100' : '▼ BELOW MA100';
+  const priceRow = `
+    <div class="price-row">
+      <div class="price-item">
+        <div class="price-lbl">Slēgšanas</div>
+        <div class="price-val">${fmtPrice(c.last_close)}</div>
+      </div>
+      <span class="trend-badge ${trendCls}">${trendTxt}</span>
+      <div class="price-item">
+        <div class="price-lbl">Live</div>
+        <div class="price-val">${fmtPrice(c.live_price)}</div>
+      </div>
+    </div>`;
+
+  // Probability bars
+  const pLongCls  = c.go_long  ? 'al' : '';
+  const pShortCls = c.go_short ? 'as' : '';
+  const thrHtml   = c.rule_based
+    ? `<span class="prob-thr"></span>`
+    : `<span class="prob-thr">&ge;${(c.min_prob*100).toFixed(0)}%</span>`;
+  const pLongLbl  = c.rule_based ? 'Str↑' : 'P(L)';
+  const pShortLbl = c.rule_based ? 'Str↓' : 'P(S)';
+  const probSection = `
+    <div class="prob-section">
+      <div class="prob-row">
+        <span class="prob-lbl">${pLongLbl}</span>
+        <div class="prob-track"><div class="prob-fill long-fill" style="width:${Math.min(c.p_long*100,100).toFixed(1)}%"></div></div>
+        <span class="prob-val ${pLongCls}">${(c.p_long*100).toFixed(1)}%</span>
+        ${thrHtml}
+      </div>
+      <div class="prob-row">
+        <span class="prob-lbl">${pShortLbl}</span>
+        <div class="prob-track"><div class="prob-fill short-fill" style="width:${Math.min(c.p_short*100,100).toFixed(1)}%"></div></div>
+        <span class="prob-val ${pShortCls}">${(c.p_short*100).toFixed(1)}%</span>
+        ${thrHtml}
+      </div>
+    </div>`;
+
+  // Filter badges
+  const f = c.filters || {};
+  const badges = [];
+  if ('atr7_pct' in f) {
+    const ok = c.filt_atr >= f.atr7_pct;
+    badges.push(`<span class="filt-badge ${ok?'pass':'fail'}">ATR ${c.filt_atr.toFixed(2)}&ge;${f.atr7_pct}%</span>`);
+  }
+  if ('roc10_abs_pct' in f) {
+    const ok = c.filt_roc >= f.roc10_abs_pct;
+    badges.push(`<span class="filt-badge ${ok?'pass':'fail'}">|ROC| ${c.filt_roc.toFixed(2)}&ge;${f.roc10_abs_pct}%</span>`);
+  }
+  if ('slope_abs_pct' in f) {
+    const ok = c.filt_slope >= f.slope_abs_pct;
+    badges.push(`<span class="filt-badge ${ok?'pass':'fail'}">SLP ${c.filt_slope.toFixed(2)}&ge;${f.slope_abs_pct}%</span>`);
+  }
+  const overallBadge = badges.length
+    ? `<span class="overall-badge ${c.filt_pass?'ok':'nok'}">${c.filt_pass ? '✓ OK' : '✗ NĒ'}</span>`
+    : '';
+  const filtersRow = `<div class="filters-row">${badges.join('')}${overallBadge}</div>`;
+
+  // Position box
+  let posHtml;
+  if (c.position) {
+    const pos = c.position;
+    const unr = pos.unrealized_pct;
+    const unrCls = (unr == null) ? '' : (unr >= 0 ? 'pos' : 'neg');
+    const unrTxt = (unr == null) ? '—' : fmtPct(unr);
+    posHtml = `
+      <div class="pos-box ${pos.direction}-pos">
+        <div class="pos-head">
+          <span class="pos-dir ${pos.direction}">▶ ${pos.direction.toUpperCase()}</span>
+          <span class="pos-unr ${unrCls}">${unrTxt}</span>
+        </div>
+        <div class="pos-detail">@ ${fmtPrice(pos.entry_price)} &nbsp; bar ${pos.bars_held}/${pos.horizon} &nbsp; ${esc(pos.entry_time)}</div>
+      </div>`;
+  } else {
+    posHtml = `<div class="pos-box no-pos"><span class="pos-dir none">— nav atvērtas pozīcijas</span></div>`;
+  }
+
+  // Session stats
+  const retCls = c.return_pct >= 0 ? 'pos' : 'neg';
+  const statsRow = `
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-lbl">Kapitāls</div>
+        <div class="stat-val">${c.capital.toFixed(2)}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-lbl">Atdeve</div>
+        <div class="stat-val ${retCls}">${fmtPct(c.return_pct)}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-lbl">Darij.</div>
+        <div class="stat-val">${c.trades_total}</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-lbl">WR</div>
+        <div class="stat-val">${c.trades_total ? c.win_rate.toFixed(0) + '%' : '—'}</div>
+      </div>
+    </div>`;
+
+  // Recent trades
+  let tradesHtml = '';
+  if (c.recent_trades && c.recent_trades.length) {
+    const chips = [...c.recent_trades].reverse().map(t => {
+      const cls = t.pnl_pct >= 0 ? 'w' : 'l';
+      const d   = t.direction ? t.direction[0].toUpperCase() : '';
+      return `<span class="trade-chip ${cls}">${d}${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct.toFixed(2)}%</span>`;
+    }).join('');
+    tradesHtml = `<div class="trades-row"><span class="trades-lbl">Pēdējie:&nbsp;</span>${chips}</div>`;
+  }
+
+  // Timer
+  const timerHtml = `
+    <div class="timer-row">
+      <span class="timer-lbl">Nākamā svece</span>
+      <span class="timer-val">${fmtSecs(c.next_bar_secs)}</span>
+    </div>`;
+
+  return `
+    <div class="card ${sigClass}">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="sym">${esc(c.symbol)}</span>
+          <span class="lbl">${esc(c.label)}</span>
+        </div>
+        ${typeBadge}
+      </div>
+      <div class="card-body">
+        ${banner}
+        ${priceRow}
+        <hr class="div">
+        ${probSection}
+        ${filtersRow}
+        <hr class="div">
+        ${posHtml}
+        ${statsRow}
+        ${tradesHtml}
+        ${timerHtml}
+      </div>
+    </div>`;
+}
+
+// ── Render full state ─────────────────────────────────────────────
+function render(state) {
+  if (!state || !state.configs || !state.configs.length) {
+    document.getElementById('grid').innerHTML = `
+      <div id="no-data">
+        <h2>⚠ Nav datu</h2>
+        <p>live_state.json ir tukšs vai bojāts.</p>
+      </div>`;
+    return;
+  }
+
+  // Update header
+  const syms = [...new Set(state.configs.map(c => c.symbol))].join(' · ');
+  document.getElementById('symbols-badge').textContent = syms;
+  document.getElementById('updated-time').textContent  = state.updated_utc + ' UTC';
+
+  // Stale check: warn if JSON is older than 60 s
+  const age = Date.now() / 1000 - (state.updated_ts || 0);
+  const staleBadge = document.getElementById('stale-badge');
+  const dot        = document.getElementById('refresh-dot');
+  if (age > 60) {
+    staleBadge.classList.add('show');
+    dot.classList.add('stale');
+  } else {
+    staleBadge.classList.remove('show');
+    dot.classList.remove('stale');
+  }
+
+  // Render cards
+  document.getElementById('grid').innerHTML = state.configs.map(renderCard).join('');
+}
+
+// ── Fetch & refresh ────────────────────────────────────────────────
+async function doRefresh() {
+  const dot = document.getElementById('refresh-dot');
+  dot.classList.add('fetching');
+  try {
+    const r = await fetch('live_state.json?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const state = await r.json();
+    render(state);
+    dot.classList.remove('fetching', 'stale');
+  } catch (e) {
+    dot.classList.remove('fetching');
+    dot.classList.add('stale');
+  }
+  countdown = REFRESH_MS / 1000;
+}
+
+// ── 1-second tick ─────────────────────────────────────────────────
+function tick() {
+  countdown--;
+  if (countdown < 0) countdown = 0;
+  document.getElementById('refresh-timer').textContent = countdown + 's';
+  if (countdown <= 0) {
+    countdown = REFRESH_MS / 1000;
+    doRefresh();
+  }
+}
+
+// ── Boot ───────────────────────────────────────────────────────────
+doRefresh();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
