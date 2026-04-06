@@ -684,7 +684,8 @@ def run_pipeline(symbol: str, timeframe: str, download: bool,
                  backtest_only: bool = False,
                  override_days: int | None = None,
                  cutoff: str | None = None,
-                 trend_ma: int = 100) -> None:
+                 trend_ma: int = 100,
+                 no_filter: bool = False) -> None:
     print(f"\n{'='*65}")
     print(f"  {symbol}  {timeframe}  --  LightGBM + XGBoost  (v2)")
     print(f"{'='*65}")
@@ -775,8 +776,12 @@ def run_pipeline(symbol: str, timeframe: str, download: bool,
             df_te    = df_valid.reset_index(drop=True)
             yl_te    = y_long.values
             ys_te    = y_short.values
-            sig_filter_mask = compute_signal_filter_mask(
-                features, f"{timeframe}-{hold_bars}bar", symbol=symbol)
+            if no_filter:
+                sig_filter_mask = np.ones(len(features), dtype=bool)
+                print(f"  Filters        : DISABLED (--no-filter)")
+            else:
+                sig_filter_mask = compute_signal_filter_mask(
+                    features, f"{timeframe}-{hold_bars}bar", symbol=symbol)
             print(f"  Loaded models from {MODELS_DIR}/")
             print(f"  Bars for inference : {len(X_te)}  (full window, no train/val split)")
         else:
@@ -958,6 +963,8 @@ def main() -> None:
     parser.add_argument("--trend-ma",      type=int, default=100, choices=[50, 100],
                         dest="trend_ma",
                         help="MA period for trend filter: Long above MA, Short below MA (default: 100)")
+    parser.add_argument("--no-filter",     action="store_true", dest="no_filter",
+                        help="Disable signal quality filters (atr7_pct, roc10_abs_pct, slope_abs_pct)")
     args = parser.parse_args()
 
     sl_info = f"SL {STOP_LOSS_PCT*100:.1f}%" if STOP_LOSS_PCT else "no SL"
@@ -975,7 +982,8 @@ def main() -> None:
     for tf in args.timeframes:
         run_pipeline(symbol=args.symbol, timeframe=tf, download=args.download,
                      backtest_only=args.backtest_only, override_days=args.days,
-                     cutoff=args.cutoff, trend_ma=args.trend_ma)
+                     cutoff=args.cutoff, trend_ma=args.trend_ma,
+                     no_filter=args.no_filter)
 
     print_summary(args.symbol, args.timeframes)
 

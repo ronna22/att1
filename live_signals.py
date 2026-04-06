@@ -323,22 +323,26 @@ class SimState:
                     self.capital += self.capital * pnl_pct / 100
                     flag = "W" if pnl_pct > 0 else "L"
                     self.closed_trades.append({
-                        "flag":      flag,
-                        "direction": self.position.direction,
-                        "exit":      self.last_bar_dt,
-                        "pnl_pct":   round(pnl_pct, 3),
-                        "capital":   round(self.capital, 2),
+                        "flag":        flag,
+                        "direction":   self.position.direction,
+                        "entry_time":  self.position.entry_time,
+                        "entry_price": self.position.entry_price,
+                        "exit":        self.last_bar_dt,
+                        "exit_price":  round(close_price, 8),
+                        "pnl_pct":     round(pnl_pct, 3),
+                        "capital":     round(self.capital, 2),
                     })
                     self.trade_log = (f"CLOSED {self.position.direction.upper()} "
                                       f"{pnl_pct:+.2f}%  cap:{self.capital:.0f}")
                     flag_icon = "✅" if flag == "W" else "❌"
-                    send_telegram(
-                        f"{flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
-                        f"Direction : {self.position.direction.upper()}\n"
-                        f"PnL       : <b>{pnl_pct:+.2f}%</b>\n"
-                        f"Capital   : {self.capital:.0f} USDT\n"
-                        f"Time      : {self.last_bar_dt} UTC"
-                    )
+                    if self.symbol == "SIRENUSDT" and self.label == "15m-2bar":
+                        send_telegram(
+                            f"{flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
+                            f"Direction : {self.position.direction.upper()}\n"
+                            f"PnL       : <b>{pnl_pct:+.2f}%</b>\n"
+                            f"Capital   : {self.capital:.0f} USDT\n"
+                            f"Time      : {self.last_bar_dt} UTC"
+                        )
                     self.position = None
 
             if self.position is None and (self.go_long or self.go_short):
@@ -357,14 +361,15 @@ class SimState:
                 else:
                     icon = "\U0001f535" if direction == "long" else "\U0001f7e0"  # 🔵/🟠 other ML
                     model_tag = f"XGB  {self.symbol}"
-                send_telegram(
-                    f"{icon} <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
-                    f"Direction : <b>{direction.upper()}</b>\n"
-                    f"Entry     : {entry_price:.6f}\n"
-                    f"Horizon   : {self.horizon} bars ({self.timeframe})\n"
-                    f"Model     : {model_tag}\n"
-                    f"Time      : {self.last_bar_dt} UTC"
-                )
+                if self.symbol == "SIRENUSDT" and self.label == "15m-2bar":
+                    send_telegram(
+                        f"{icon} <b>SIGNAL [{self.symbol} {self.label}]</b>\n"
+                        f"Direction : <b>{direction.upper()}</b>\n"
+                        f"Entry     : {entry_price:.6f}\n"
+                        f"Horizon   : {self.horizon} bars ({self.timeframe})\n"
+                        f"Model     : {model_tag}\n"
+                        f"Time      : {self.last_bar_dt} UTC"
+                    )
 
     def unrealized_now(self, live_price: float) -> float | None:
         if self.position is None:
@@ -492,35 +497,64 @@ class LstmSimState:
         self.trade_log = ""
         new_bar = (current_ts != self.last_candle_ts)
 
+        # ── Live TP/SL check (katru refresh, izmantojot live/formēšanās sveci) ──
+        live_price = float(df_5m.iloc[-1]["close"])
+        if self.position is not None and self.exit_mode == "tpsl":
+            _pos = self.position
+            _tp  = _pos.entry_price * (1.0 + LSTM_TAKE_PROFIT)
+            _sl  = _pos.entry_price * (1.0 + LSTM_STOP_LOSS)
+            _live_pnl:  float | None = None
+            _live_exit: str   | None = None
+            if live_price >= _tp:
+                _live_pnl  = (LSTM_TAKE_PROFIT - 2 * FEE_RATE) * 100
+                _live_exit = "tp"
+            elif live_price <= _sl:
+                _live_pnl  = (LSTM_STOP_LOSS   - 2 * FEE_RATE) * 100
+                _live_exit = "sl"
+            if _live_pnl is not None:
+                self.capital += self.capital * _live_pnl / 100
+                _flag = "W" if _live_pnl > 0 else "L"
+                self.closed_trades.append({
+                    "flag":        _flag,
+                    "direction":   _pos.direction,
+                    "entry_time":  _pos.entry_time,
+                    "entry_price": _pos.entry_price,
+                    "exit":        self.last_bar_dt,
+                    "exit_price":  round(live_price, 8),
+                    "pnl_pct":     round(_live_pnl, 3),
+                    "capital":     round(self.capital, 2),
+                    "exit_type":   _live_exit,
+                })
+                self.trade_log = f"CLOSED LONG [{_live_exit}] {_live_pnl:+.2f}%  cap:{self.capital:.0f}"
+                _flag_icon = "\u2705" if _flag == "W" else "\u274c"
+                _exit_lbl  = "TP +0.50%" if _live_exit == "tp" else "SL -0.30%"
+                if self.label == "LSTM-3bar-hrz":
+                    send_telegram(
+                        f"{_flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
+                        f"Direction : {_pos.direction.upper()}\n"
+                        f"PnL       : <b>{_live_pnl:+.2f}%</b>\n"
+                        f"Exit      : {_exit_lbl} (live cena)\n"
+                        f"Capital   : {self.capital:.0f} USDT\n"
+                        f"Time      : {self.last_bar_dt} UTC"
+                    )
+                self.position = None
+                self._pending_exit = _live_exit
+
         if not new_bar:
             return
         self.last_candle_ts = current_ts
 
-        # ── Pozīcijas pārvaldība ──────────────────────────────────────────────
+        # ── Pozīcijas pārvaldība (sveces slēgšana: horizon fallback) ──────────
         if self.position is not None:
             self.position.bars_held += 1
             pos = self.position
             close_price = float(current_bar["close"])
-            high_price  = float(current_bar["high"])
-            low_price   = float(current_bar["low"])
             closed = False
             pnl_pct: float | None = None
 
             if self.exit_mode == "tpsl":
-                # Pārbauda TP/SL intra-bar
-                tp_price = pos.entry_price * (1.0 + LSTM_TAKE_PROFIT)
-                sl_price = pos.entry_price * (1.0 + LSTM_STOP_LOSS)
-                if high_price >= tp_price:
-                    gross   = LSTM_TAKE_PROFIT
-                    pnl_pct = (gross - 2 * FEE_RATE) * 100
-                    closed  = True
-                    self._pending_exit = "tp"
-                elif low_price <= sl_price:
-                    gross   = LSTM_STOP_LOSS
-                    pnl_pct = (gross - 2 * FEE_RATE) * 100
-                    closed  = True
-                    self._pending_exit = "sl"
-                elif pos.bars_held >= pos.horizon:
+                # TP/SL apstrādā live cena (augstāk) — šeit tikai horizon fallback
+                if pos.bars_held >= pos.horizon:
                     gross   = (close_price - pos.entry_price) / pos.entry_price
                     pnl_pct = (gross - 2 * FEE_RATE) * 100
                     closed  = True
@@ -537,27 +571,31 @@ class LstmSimState:
                 flag = "W" if pnl_pct > 0 else "L"
                 exit_tag = f"[{self._pending_exit}]" if self._pending_exit else ""
                 self.closed_trades.append({
-                    "flag":      flag,
-                    "direction": pos.direction,
-                    "exit":      self.last_bar_dt,
-                    "pnl_pct":   round(pnl_pct, 3),
-                    "capital":   round(self.capital, 2),
-                    "exit_type": self._pending_exit or "hrz",
+                    "flag":        flag,
+                    "direction":   pos.direction,
+                    "entry_time":  pos.entry_time,
+                    "entry_price": pos.entry_price,
+                    "exit":        self.last_bar_dt,
+                    "exit_price":  round(close_price, 8),
+                    "pnl_pct":     round(pnl_pct, 3),
+                    "capital":     round(self.capital, 2),
+                    "exit_type":   self._pending_exit or "hrz",
                 })
                 self.trade_log = (
                     f"CLOSED {pos.direction.upper()} {exit_tag}"
                     f"{pnl_pct:+.2f}%  cap:{self.capital:.0f}"
                 )
-                flag_icon = "✅" if flag == "W" else "❌"
+                flag_icon = "\u2705" if flag == "W" else "\u274c"
                 exit_type_label = {"tp": "TP +0.50%", "sl": "SL -0.30%", "hrz": "Horizon"}.get(self._pending_exit or "hrz", "Horizon")
-                send_telegram(
-                    f"{flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
-                    f"Direction : {pos.direction.upper()}\n"
-                    f"PnL       : <b>{pnl_pct:+.2f}%</b>\n"
-                    f"Exit      : {exit_type_label}\n"
-                    f"Capital   : {self.capital:.0f} USDT\n"
-                    f"Time      : {self.last_bar_dt} UTC"
-                )
+                if self.label == "LSTM-3bar-hrz":
+                    send_telegram(
+                        f"{flag_icon} <b>CLOSED [{self.symbol} {self.label}]</b>\n"
+                        f"Direction : {pos.direction.upper()}\n"
+                        f"PnL       : <b>{pnl_pct:+.2f}%</b>\n"
+                        f"Exit      : {exit_type_label}\n"
+                        f"Capital   : {self.capital:.0f} USDT\n"
+                        f"Time      : {self.last_bar_dt} UTC"
+                    )
                 self.position = None
                 self._pending_exit = None
 
@@ -567,15 +605,16 @@ class LstmSimState:
                                      self.last_bar_dt, self.horizon)
             self.trade_log += f" OPEN LONG @ {entry_price:.6f}"
             exit_label = "Horizon exit" if self.exit_mode == "horizon" else "TP+0.50% / SL-0.30%"
-            send_telegram(
-                f"\U0001f9e0\U0001f7e2 <b>LSTM SIGNAL [{self.symbol} {self.label}]</b>\n"
-                f"Direction : <b>LONG</b>\n"
-                f"Entry     : {entry_price:.6f}\n"
-                f"Horizon   : {self.horizon} bars (5m)\n"
-                f"Exit      : {exit_label}\n"
-                f"Prob      : {self.p_long:.1%}\n"
-                f"Time      : {self.last_bar_dt} UTC"
-            )
+            if self.label == "LSTM-3bar-hrz":
+                send_telegram(
+                    f"\U0001f9e0\U0001f7e2 <b>LSTM SIGNAL [{self.symbol} {self.label}]</b>\n"
+                    f"Direction : <b>LONG</b>\n"
+                    f"Entry     : {entry_price:.6f}\n"
+                    f"Horizon   : {self.horizon} bars (5m)\n"
+                    f"Exit      : {exit_label}\n"
+                    f"Prob      : {self.p_long:.1%}\n"
+                    f"Time      : {self.last_bar_dt} UTC"
+                )
 
     def unrealized_now(self, live_price: float) -> float | None:
         if self.position is None:
@@ -868,7 +907,7 @@ def write_state_json(symbol: str, sims: list,
             "trades_total":  total,
             "trades_wins":   wins,
             "win_rate":      round(wins / total * 100, 1) if total else 0.0,
-            "recent_trades": s.closed_trades[-5:],
+            "recent_trades": s.closed_trades[-50:],
             "next_bar_secs": next_bar_secs,
         })
 

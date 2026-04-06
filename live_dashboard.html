@@ -329,6 +329,7 @@ hr.div { border: none; border-top: 1px solid var(--border); }
     <span id="symbols-badge">—</span>
   </div>
   <div class="hdr-right">
+    <button id="chart-btn" onclick="openChart()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:5px;cursor:pointer;font-size:0.78rem;transition:border-color .2s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">📊 24h darījumi</button>
     <span id="stale-badge">⚠ NOVECOJIS</span>
     <span id="updated-time">—</span>
     <div id="refresh-dot"></div>
@@ -606,6 +607,142 @@ function tick() {
 // ── Boot ───────────────────────────────────────────────────────────
 doRefresh();
 setInterval(tick, 1000);
+</script>
+
+<!-- ── Trade chart modal ──────────────────────────────────────────── -->
+<div id="chart-modal" onclick="if(event.target===this)closeChart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:999;overflow:auto;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:24px auto;max-width:920px;padding:20px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 style="font-size:1rem;font-weight:700;">📊 Pēdējo 24h darījumi</h2>
+      <button onclick="closeChart()" style="background:none;border:1px solid var(--border);color:var(--dim);padding:3px 10px;border-radius:4px;cursor:pointer;">✕</button>
+    </div>
+    <canvas id="trade-canvas" style="width:100%;display:block;"></canvas>
+    <div id="trade-table" style="margin-top:14px;font-size:0.72rem;font-family:monospace;overflow-x:auto;"></div>
+  </div>
+</div>
+
+<script>
+function openChart() {
+  document.getElementById('chart-modal').style.display = 'block';
+  renderTradeChart();
+}
+function closeChart() {
+  document.getElementById('chart-modal').style.display = 'none';
+}
+
+function renderTradeChart() {
+  fetch('live_state.json?_=' + Date.now()).then(r => r.json()).then(state => {
+    const cutoff = Date.now() - 24 * 3600 * 1000;
+    const all = [];
+    (state.configs || []).forEach(cfg => {
+      (cfg.recent_trades || []).forEach(t => {
+        if (!t.entry_time) return;
+        const ts = Date.parse(t.entry_time.replace(' ', 'T'));
+        if (!isNaN(ts) && ts >= cutoff)
+          all.push({ ...t, cfg_label: cfg.label, cfg_symbol: cfg.symbol, ts });
+      });
+    });
+    all.sort((a, b) => a.ts - b.ts);
+    drawCanvas(all);
+    drawTable(all);
+  }).catch(e => {
+    document.getElementById('trade-table').innerHTML = '<p style="color:var(--red);padding:10px">Kļūda: ' + e + '</p>';
+  });
+}
+
+function drawCanvas(trades) {
+  const canvas = document.getElementById('trade-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.min(canvas.parentElement.clientWidth - 2, 880);
+  const H = 260;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const pad = { l: 72, r: 16, t: 18, b: 36 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, W, H);
+
+  if (!trades.length) {
+    ctx.fillStyle = '#8b949e'; ctx.font = '13px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('Nav darījumu pēdējo 24h laikā', W / 2, H / 2); return;
+  }
+
+  const prices = trades.flatMap(t => [t.entry_price, t.exit_price].filter(p => p != null && p > 0));
+  const minP = Math.min(...prices), maxP = Math.max(...prices);
+  const pPad = (maxP - minP) * 0.1 || minP * 0.005;
+  const lo = minP - pPad, hi = maxP + pPad, pRng = hi - lo;
+  const minT = trades[0].ts, maxT = Math.max(trades[trades.length - 1].ts + 300000, minT + 1);
+  const tRng = maxT - minT;
+
+  const tx = t  => pad.l + ((t - minT) / tRng) * cw;
+  const ty = p  => pad.t + ch - ((p - lo) / pRng) * ch;
+
+  // grid
+  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+    const pv = hi - (pRng / 4) * i;
+    ctx.fillStyle = '#8b949e'; ctx.font = '9px monospace'; ctx.textAlign = 'right';
+    ctx.fillText(pv.toFixed(6), pad.l - 4, y + 3);
+  }
+
+  // trades
+  trades.forEach(t => {
+    const win = t.pnl_pct >= 0;
+    const col = win ? '#3fb950' : '#f85149';
+    if (t.entry_price == null) return;
+    const x1 = tx(t.ts), y1 = ty(t.entry_price);
+    if (t.exit_price != null) {
+      const exitTs = t.exit ? Date.parse(t.exit.replace(' ', 'T')) : t.ts + 900000;
+      const x2 = isNaN(exitTs) ? x1 + 20 : tx(exitTs);
+      const y2 = ty(t.exit_price);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(x2, y2, 4, 0, Math.PI * 2);
+      ctx.fillStyle = col; ctx.fill();
+    }
+    // entry triangle
+    ctx.beginPath();
+    ctx.moveTo(x1, y1 - 7); ctx.lineTo(x1 + 5, y1 + 2); ctx.lineTo(x1 - 5, y1 + 2);
+    ctx.closePath(); ctx.fillStyle = '#58a6ff'; ctx.fill();
+  });
+
+  // x-axis time labels
+  ctx.fillStyle = '#8b949e'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const d = new Date(minT + tRng * f);
+    const lbl = d.getUTCHours().toString().padStart(2,'0') + ':' + d.getUTCMinutes().toString().padStart(2,'0');
+    ctx.fillText(lbl, pad.l + cw * f, H - 6);
+  });
+}
+
+function drawTable(trades) {
+  const el = document.getElementById('trade-table');
+  if (!trades.length) {
+    el.innerHTML = '<p style="color:var(--dim);text-align:center;padding:10px">Nav darījumu pēdējo 24h laikā</p>'; return;
+  }
+  let h = '<table style="width:100%;border-collapse:collapse">';
+  h += '<tr style="color:var(--dim);border-bottom:1px solid var(--border)">';
+  ['Config','Virz.','Entry','Exit','PnL','Tips','Laiks'].forEach(c =>
+    h += `<th style="padding:4px 6px;text-align:${c==='PnL'||c==='Entry'||c==='Exit'?'right':'left'};font-weight:500">${c}</th>`);
+  h += '</tr>';
+  [...trades].reverse().forEach(t => {
+    const c = t.pnl_pct >= 0 ? '#3fb950' : '#f85149';
+    h += `<tr style="border-bottom:1px solid #21262d">
+      <td style="padding:3px 6px">${esc(t.cfg_symbol)} <span style="color:var(--dim)">${esc(t.cfg_label)}</span></td>
+      <td style="text-align:center">${(t.direction||'L')[0].toUpperCase()}</td>
+      <td style="text-align:right">${t.entry_price ? t.entry_price.toFixed(6) : '—'}</td>
+      <td style="text-align:right">${t.exit_price  ? t.exit_price.toFixed(6)  : '—'}</td>
+      <td style="text-align:right;color:${c};font-weight:700">${t.pnl_pct>=0?'+':''}${t.pnl_pct.toFixed(2)}%</td>
+      <td style="text-align:center;color:var(--dim)">${t.exit_type||'—'}</td>
+      <td style="text-align:right;color:var(--dim)">${(t.entry_time||'').slice(11,16)}</td>
+    </tr>`;
+  });
+  h += '</table>';
+  el.innerHTML = h;
+}
 </script>
 </body>
 </html>

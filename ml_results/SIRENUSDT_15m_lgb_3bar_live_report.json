@@ -4,6 +4,6 @@
   "hold_bars": 3,
   "trades": 0,
   "error": "No trades at any threshold",
-  "auc_long": 0.4398,
-  "auc_short": 0.4831
+  "auc_long": 0.4456,
+  "auc_short": 0.4345
 }
